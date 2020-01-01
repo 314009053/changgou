@@ -1,0 +1,53 @@
+server:
+  port: 8001
+spring:
+  application:
+    name: gateway-web
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':                 #匹配所有请求
+            allowedOrigins: "*"    #跨域处理，允许所有的域
+            allowedMethods:        #支持的方法
+              - GET
+              - POST
+              - PUT
+              - DELETE
+      routes:
+           - id: changgou_goods_route        #唯一标识
+             #uri: http://localhost:18081     #用户请求需要路由到该服务（指定要路由的服务）
+             uri: lb://goods     #使用LoadBalanceclient实现负载均衡，后面goods是微服务的名称，主要用于集群环境
+             predicates:                     #路由断言，路由规则配置
+             #- Host=cloud.changgou.com**     #用户请求的域名规则配置，所有以cloud.changgou.com开头的服务都会被路由大到ttp://localhost:18081
+             - Path=/api/brand/**           #将所有请求转发到http://localhost:18081
+             #- Path=/**
+             filters:
+             - StripPrefix=1       #将请求路径中的第一个路径去掉，路径以/分隔，如/api/brand/ 实际请求到为/brand/
+             #- PrefixPath=/brand    #将请求端口后添加一个路径/brand，如原请求为/qq,实际为/brand/qq
+             - name: RequestRateLimiter  #局部限流过滤器，请求数限流，名字不能随便写，使用默认的facatory
+               args:
+                 key-resolver: "#{@ipKeyResolver}"    #用户身份唯一标识符，与启动类中创建的KeyResolver的bean 的 name一致
+                 redis-rate-limiter.replenishRate: 1  #每秒只允许有一个请求
+                 redis-rate-limiter.burstCapacity: 4  #允许并发有4个请求，宽限的个数
+
+           - id: changgou_user_route
+             uri: lb://user
+             predicates:
+             - Path=/api/user/**
+             filters:
+             - StripPrefix=1
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:7001/eureka
+management:
+  endpoint:
+    gateway:
+      enabled: true
+    web:
+      exposure:
+        inclued: true

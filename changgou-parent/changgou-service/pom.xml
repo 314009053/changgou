@@ -12,6 +12,7 @@
     <modules>
         <module>changgou-service-goods</module>
         <module>changgou-service-file</module>
+        <module>changgou-service-user</module>
     </modules>
     <artifactId>changggou-service</artifactId>
 

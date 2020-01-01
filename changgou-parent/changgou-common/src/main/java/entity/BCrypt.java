@@ -14,6 +14,8 @@
 
 package entity;
 
+import org.junit.Test;
+
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 
@@ -788,5 +790,11 @@ public class BCrypt {
 			ret |= hashed_bytes[i] ^ try_bytes[i];
 		}
 		return ret == 0;
+	}
+
+
+	@Test
+	public void test(){
+		System.out.println(hashpw("123456", "changgou"));
 	}
 }
